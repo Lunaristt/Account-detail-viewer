@@ -1,6 +1,7 @@
 "use client";
 
 import useSWR from "swr";
+import Link from "next/link";
 import { useState, useMemo } from "react";
 
 const fetcher = (url: string) =>
@@ -24,7 +25,7 @@ export default function Page() {
       `${user.name} ${user.email}`.toLowerCase().includes(search.toLowerCase()),
     );
     users.sort((a: any, b: any) =>
-      sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
+      sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name),
     );
     return users;
   }, [data, search, sortAsc]);
@@ -58,8 +59,19 @@ export default function Page() {
           </thead>
           <tbody>
             {filteredUsers.map((user: any) => (
-              <tr key={user.id}>
-                <td>{user.name}</td>
+              <tr key={user.id} style={{ cursor: "pointer" }}>
+                <td>
+                  <Link
+                    href={`/users/${user.id}`}
+                    style={{
+                      textDecoration: "none",
+                      color: "inherit",
+                      display: "block",
+                    }}
+                  >
+                    {user.name}
+                  </Link>
+                </td>
                 <td>{user.email}</td>
                 <td>
                   <a href={`http://${user.website}`} target="_blank">
