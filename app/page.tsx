@@ -3,12 +3,28 @@
 import useSWR from "swr";
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import "./users-list.css";
 
 const fetcher = (url: string) =>
   fetch(url).then((res) => {
     if (!res.ok) throw new Error("Failed to fetch");
     return res.json();
   });
+
+function SkeletonCard() {
+  return (
+    <div className="skeleton-card">
+      <div className="skeleton-line wide" />
+      <div className="skeleton-line medium" />
+      <div className="skeleton-stats">
+        <div className="skeleton-pill" />
+        <div className="skeleton-pill" />
+        <div className="skeleton-pill" />
+      </div>
+      <div className="skeleton-btn" />
+    </div>
+  );
+}
 
 export default function Page() {
   const { data: users, error: usersError } = useSWR("https://jsonplaceholder.typicode.com/users", fetcher);
@@ -24,7 +40,6 @@ export default function Page() {
 
   const enrichedUsers = useMemo(() => {
     if (!users || !posts || !todos) return [];
-
     return users.map((user: any) => ({
       ...user,
       totalPosts: posts.filter((p: any) => p.userId === user.id).length,
@@ -37,10 +52,8 @@ export default function Page() {
     let result = enrichedUsers.filter((user: any) =>
       `${user.name} ${user.email}`.toLowerCase().includes(search.toLowerCase())
     );
-
     if (filter === "has-pending") result = result.filter((u: any) => u.pendingTodos > 0);
     if (filter === "no-completed") result = result.filter((u: any) => u.completedTodos === 0);
-
     result.sort((a: any, b: any) => {
       if (sortBy === "name-asc") return a.name.localeCompare(b.name);
       if (sortBy === "name-desc") return b.name.localeCompare(a.name);
@@ -48,94 +61,110 @@ export default function Page() {
       if (sortBy === "most-posts") return b.totalPosts - a.totalPosts;
       return 0;
     });
-
     return result;
   }, [enrichedUsers, search, sortBy, filter]);
 
-  if (isLoading) return <p style={{ padding: "20px" }}>Loading...</p>;
-  if (hasError) return <p style={{ padding: "20px" }}>Error loading data.</p>;
-
   return (
-    <div style={{ padding: "20px", margin: "0 auto" }}>
-      <h1>User Operations</h1>
+    <div className="page-root">
+      <header className="page-header">
+        <div className="header-left">
+          <span className="header-tag">OPS</span>
+          <h1 className="header-title">User Operations</h1>
+        </div>
+        {!isLoading && !hasError && (
+          <span className="header-count">{filteredUsers.length} users</span>
+        )}
+      </header>
 
-      {/* Controls */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "20px" }}>
-        <input
-          type="text"
-          placeholder="Search by name or email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ padding: "8px", flex: "1", minWidth: "200px" }}
-        />
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={{ padding: "8px" }}>
-          <option value="name-asc">Name A-Z</option>
-          <option value="name-desc">Name Z-A</option>
-          <option value="most-pending">Most pending todos</option>
+      <div className="controls">
+        <div className="search-wrap">
+          <span className="search-icon">⌕</span>
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Search name or email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Search users"
+          />
+        </div>
+        <select
+          className="select-control"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          aria-label="Sort users"
+        >
+          <option value="name-asc">Name A→Z</option>
+          <option value="name-desc">Name Z→A</option>
+          <option value="most-pending">Most pending</option>
           <option value="most-posts">Most posts</option>
         </select>
-        <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ padding: "8px" }}>
+        <select
+          className="select-control"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          aria-label="Filter users"
+        >
           <option value="all">All users</option>
-          <option value="has-pending">Has pending todos</option>
-          <option value="no-completed">No completed todos</option>
+          <option value="has-pending">Has pending</option>
+          <option value="no-completed">No completed</option>
         </select>
       </div>
 
-      {filteredUsers.length === 0 && (
-        <p style={{ color: "#888" }}>No users match your filter.</p>
+      {hasError && (
+        <div className="state-error">
+          <span className="state-icon">✕</span>
+          <p>Failed to load users. Please try again.</p>
+        </div>
       )}
 
-      {/* Cards */}
-      <div className="card-grid">
-        {filteredUsers.map((user: any) => (
-          <div key={user.id} className="user-card">
-            <div>
-              <p style={{ margin: 0, fontWeight: "bold", fontSize: "16px" }}>{user.name}</p>
-              <p style={{ margin: "4px 0 12px", color: "#666", fontSize: "14px" }}>{user.email}</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "13px" }}>
-                <span>📝 {user.totalPosts} posts</span>
-                <span style={{ color: "green" }}>✓ {user.completedTodos} done</span>
-                <span style={{ color: user.pendingTodos > 0 ? "orange" : "gray" }}>
-                  ⏳ {user.pendingTodos} pending
-                </span>
-              </div>
-            </div>
-            <Link href={`/users/${user.id}`} style={{
-              display: "block",
-              marginTop: "16px",
-              padding: "8px",
-              border: "1px solid #ccc",
-              borderRadius: "6px",
-              textDecoration: "none",
-              fontSize: "14px",
-              textAlign: "center",
-            }}>
-              View →
-            </Link>
-          </div>
-        ))}
-      </div>
+      {isLoading && !hasError && (
+        <div className="card-grid">
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+        </div>
+      )}
 
-      <style>{`
-        .card-grid {
-          display: grid;
-          grid-template-columns: 2fr;
-          gap: 12px;
-        }
-        .user-card {
-          border: 1px solid #ddd;
-          border-radius: 8px;
-          padding: 16px;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-        }
-        @media (min-width: 640px) {
-          .card-grid {
-            grid-template-columns: repeat(7, 1fr);
-          }
-        }
-      `}</style>
+      {!isLoading && !hasError && filteredUsers.length === 0 && (
+        <div className="state-empty">
+          <span className="state-icon">◎</span>
+          <p>No users match your current filters.</p>
+          <button className="reset-btn" onClick={() => { setSearch(""); setFilter("all"); }}>
+            Reset filters
+          </button>
+        </div>
+      )}
+
+      {!isLoading && !hasError && filteredUsers.length > 0 && (
+        <div className="card-grid">
+          {filteredUsers.map((user: any) => (
+            <div className="user-card" key={user.id}>
+              <div className="card-body">
+                <p className="card-name">{user.name}</p>
+                <p className="card-email">{user.email}</p>
+                <div className="card-stats">
+                  <span className="stat">
+                    <span className="stat-val">{user.totalPosts}</span>
+                    <span className="stat-label">posts</span>
+                  </span>
+                  <span className="stat-divider" />
+                  <span className="stat stat--green">
+                    <span className="stat-val">{user.completedTodos}</span>
+                    <span className="stat-label">done</span>
+                  </span>
+                  <span className="stat-divider" />
+                  <span className={`stat ${user.pendingTodos > 0 ? "stat--amber" : ""}`}>
+                    <span className="stat-val">{user.pendingTodos}</span>
+                    <span className="stat-label">pending</span>
+                  </span>
+                </div>
+              </div>
+              <Link href={`/users/${user.id}`} className="card-link" aria-label={`View details for ${user.name}`}>
+                View →
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
