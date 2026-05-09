@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Account Detail Viewer
+
+A frontend assessment project built with **Next.js** and **TypeScript**. The app fetches user account data from a public REST API and displays it across a list view and a detail view, with a live search feature to filter accounts.
+
+---
+
+## Features
+
+- **Account List** — Displays all user accounts fetched from the JSONPlaceholder API
+- **Account Detail** — Click any account to view its full details on a dedicated page
+- **Search** — Filter accounts in real time by name or other fields
+- **Unit Tests** — Core functionality covered with Jest
+
+---
+
+## Tech Stack
+
+- [Next.js](https://nextjs.org/) (App Router)
+- TypeScript
+- CSS Modules
+- Jest + React Testing Library
+- [JSONPlaceholder API](https://jsonplaceholder.typicode.com/)
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- npm
+
+### Installation
+
+```bash
+git clone https://github.com/Lunaristt/account-detail-viewer.git
+cd account-detail-viewer
+npm install
+```
+
+### Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Run Tests
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm test
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+app/
+├── page.tsx          # Account list view with search
+├── [id]/
+│   └── page.tsx      # Account detail view
+__tests__/            # Unit tests
+public/               # Static assets
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## API Reference
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Data is fetched from [JSONPlaceholder](https://jsonplaceholder.typicode.com/):
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `GET /users` — Returns list of all user accounts
+- `GET /users/:id` — Returns details for a specific user
